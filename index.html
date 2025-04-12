@@ -7,38 +7,67 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    h1, h2 {
+      color: #1e40af;
+    }
+    textarea, input {
+      background-color: #f9fafb;
+    }
+    button:hover {
+      background-color: #2563eb;
+    }
+  </style>
 </head>
-<body class="bg-gray-100 text-gray-900 p-4">
-  <div class="max-w-6xl mx-auto bg-white rounded-2xl shadow-lg p-6">
-    <h1 class="text-2xl font-bold mb-4 text-center">Personal Budget Tracker</h1>
+<body class="bg-gradient-to-br from-blue-50 to-white text-gray-900 p-6">
+  <div class="max-w-6xl mx-auto bg-white rounded-3xl shadow-2xl p-8">
+    <h1 class="text-4xl font-extrabold mb-8 text-center">💸 Personal Budget Tracker</h1>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
       <div>
-        <h2 class="font-semibold mb-2">Income</h2>
-        <input id="incomeInput" type="number" placeholder="Total income (€)" class="w-full p-2 border rounded mb-4" />
+        <h2 class="text-xl font-semibold mb-2">📅 Monthly Forecast</h2>
+        <textarea id="forecastInput" placeholder="Month:Rent:1000:Groceries:300:Utilities:150:Savings:500" class="w-full p-3 border border-gray-300 rounded-lg h-24 mb-4"></textarea>
+        <p class="text-sm text-gray-500 mt-1 mb-6">Format: Month:Category:Amount... (e.g., May:Rent:1000:Groceries:300...)</p>
 
-        <h2 class="font-semibold mb-2">Expenses</h2>
-        <textarea id="expensesInput" placeholder="Rent:1000:Bank A\nGroceries:300:Credit Card\nUtilities:150:Bank B" class="w-full p-2 border rounded h-32"></textarea>
-        <p class="text-sm text-gray-500">Format: Category:Amount:Debited From</p>
+        <h2 class="text-xl font-semibold mb-2">💰 Income</h2>
+        <input id="incomeInput" type="number" placeholder="Total income (€)" class="w-full p-3 border border-gray-300 rounded-lg mb-6" />
 
-        <h2 class="font-semibold mt-4 mb-2">Current Savings</h2>
-        <textarea id="savingsInput" placeholder="Emergency Fund:2000:Cash\nInvestments:5000:Invested" class="w-full p-2 border rounded h-24"></textarea>
-        <p class="text-sm text-gray-500">Format: Label:Amount:Status</p>
+        <h2 class="text-xl font-semibold mb-2">📉 Expenses</h2>
+        <textarea id="expensesInput" placeholder="Rent:1000:Bank A:Card\nGroceries:300:Credit Card:Card\nUtilities:150:Bank B:Transfer" class="w-full p-3 border border-gray-300 rounded-lg h-32"></textarea>
+        <p class="text-sm text-gray-500 mt-1">Format: Category:Amount:Debited From:Payment Method</p>
 
-        <button onclick="calculateBudget()" class="mt-4 bg-blue-600 text-white px-4 py-2 rounded">Calculate</button>
+        <h2 class="text-xl font-semibold mt-6 mb-2">💾 Current Savings</h2>
+        <textarea id="savingsInput" placeholder="Emergency Fund:2000:Cash\nInvestments:5000:Invested" class="w-full p-3 border border-gray-300 rounded-lg h-24"></textarea>
+        <p class="text-sm text-gray-500 mt-1">Format: Label:Amount:Status</p>
+
+        <button onclick="calculateBudget()" class="mt-6 bg-blue-600 text-white px-6 py-3 rounded-xl shadow hover:bg-blue-700 transition">Calculate</button>
       </div>
 
       <div>
-        <h2 class="font-semibold mb-2">Summary</h2>
-        <p><strong>Total Expenses:</strong> €<span id="totalExpenses">0</span></p>
-        <p><strong>Balance:</strong> €<span id="balance">0</span></p>
-        <p><strong>Savings %:</strong> <span id="savingsPercent">0</span>%</p>
+        <h2 class="text-xl font-semibold mb-2">📈 Forecast Results</h2>
+        <ul id="forecastOutput" class="list-disc list-inside text-sm text-gray-700 mb-6"></ul>
 
-        <h2 class="font-semibold mt-4 mb-2">Savings Overview</h2>
-        <ul id="savingsList" class="list-disc list-inside text-sm"></ul>
+        <h2 class="text-xl font-semibold mb-2">📊 Summary</h2>
+        <div class="space-y-1 text-base">
+          <p><strong>Total Expenses:</strong> €<span id="totalExpenses">0</span></p>
+          <p><strong>Balance:</strong> €<span id="balance">0</span></p>
+          <p><strong>Savings %:</strong> <span id="savingsPercent">0</span>%</p>
+        </div>
 
-        <canvas id="budgetChart" class="mt-4"></canvas>
-        <div id="sankeyChart" class="mt-6" style="width: 100%; height: 300px;"></div>
+        <h2 class="text-xl font-semibold mt-6 mb-2">🏦 Savings Overview</h2>
+        <ul id="savingsList" class="list-disc list-inside text-sm text-gray-700"></ul>
+
+        <h2 class="text-xl font-semibold mt-6 mb-2">💳 Payment Method Totals</h2>
+        <ul id="paymentMethodList" class="list-disc list-inside text-sm text-gray-700"></ul>
+
+        <div class="mt-8">
+          <canvas id="budgetChart" class="w-full"></canvas>
+        </div>
+
+        <div id="sankeyChart" class="mt-8 border rounded-xl shadow-inner bg-white" style="width: 100%; height: 300px;"></div>
       </div>
     </div>
   </div>
@@ -50,28 +79,41 @@
   <script>
     function calculateBudget() {
       const income = parseFloat(document.getElementById("incomeInput").value) || 0;
-
-      // Expenses Processing
       const expensesRaw = document.getElementById("expensesInput").value;
       const expenseLines = expensesRaw.split("\n");
       let totalExpenses = 0;
       const labels = [];
       const data = [];
       const sankeyData = [["From", "To", "Amount"]];
+      const paymentMethodTotals = {};
 
       expenseLines.forEach(line => {
-        const [label, value, account] = line.split(":");
+        const [label, value, account, paymentMethod] = line.split(":");
         if (label && value) {
           const trimmedLabel = label.trim();
-          labels.push(`${trimmedLabel} (${account ? account.trim() : 'N/A'})`);
+          const accountDisplay = account ? account.trim() : 'N/A';
+          const methodDisplay = paymentMethod ? paymentMethod.trim() : 'N/A';
+          labels.push(`${trimmedLabel} (${accountDisplay}, ${methodDisplay})`);
           const amount = parseFloat(value.trim());
           data.push(amount);
           totalExpenses += amount;
           sankeyData.push(["Income", trimmedLabel, amount]);
+
+          if (!paymentMethodTotals[methodDisplay]) {
+            paymentMethodTotals[methodDisplay] = 0;
+          }
+          paymentMethodTotals[methodDisplay] += amount;
         }
       });
 
-      // Savings Processing
+      const paymentMethodList = document.getElementById("paymentMethodList");
+      paymentMethodList.innerHTML = "";
+      Object.entries(paymentMethodTotals).forEach(([method, total]) => {
+        const item = document.createElement("li");
+        item.textContent = `${method}: €${total.toFixed(2)}`;
+        paymentMethodList.appendChild(item);
+      });
+
       const savingsRaw = document.getElementById("savingsInput").value;
       const savingsLines = savingsRaw.split("\n");
       const savingsList = document.getElementById("savingsList");
@@ -95,7 +137,6 @@
       document.getElementById("balance").textContent = balance.toFixed(2);
       document.getElementById("savingsPercent").textContent = savingsPercent;
 
-      // Chart.js Pie Chart
       const ctx = document.getElementById("budgetChart").getContext("2d");
       if (window.budgetChart) window.budgetChart.destroy();
       window.budgetChart = new Chart(ctx, {
@@ -116,13 +157,34 @@
         }
       });
 
-      // Google Charts Sankey
       google.charts.setOnLoadCallback(() => {
         const data = google.visualization.arrayToDataTable(sankeyData);
         const chart = new google.visualization.Sankey(document.getElementById('sankeyChart'));
         chart.draw(data, {});
       });
     }
+
+    document.getElementById("forecastInput").addEventListener("input", () => {
+      const forecastRaw = document.getElementById("forecastInput").value;
+      const forecastLines = forecastRaw.split("\n");
+      const forecastOutput = document.getElementById("forecastOutput");
+      forecastOutput.innerHTML = "";
+
+      forecastLines.forEach(line => {
+        const parts = line.split(":");
+        if (parts.length >= 3) {
+          const month = parts[0];
+          let total = 0;
+          for (let i = 2; i < parts.length; i += 2) {
+            const value = parseFloat(parts[i]);
+            if (!isNaN(value)) total += value;
+          }
+          const item = document.createElement("li");
+          item.textContent = `${month.trim()}: Projected Expenses €${total.toFixed(2)}`;
+          forecastOutput.appendChild(item);
+        }
+      });
+    });
   </script>
 </body>
 </html>
