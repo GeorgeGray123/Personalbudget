@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Personal Budget Tracker</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-900 p-4">
+  <div class="max-w-2xl mx-auto bg-white rounded-2xl shadow-lg p-6">
+    <h1 class="text-2xl font-bold mb-4 text-center">Personal Budget Tracker</h1>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <h2 class="font-semibold mb-2">Income</h2>
+        <input id="incomeInput" type="number" placeholder="Total income" class="w-full p-2 border rounded mb-4" />
+
+        <h2 class="font-semibold mb-2">Expenses</h2>
+        <textarea id="expensesInput" placeholder="Rent:1000\nGroceries:300\nUtilities:150" class="w-full p-2 border rounded h-32"></textarea>
+
+        <button onclick="calculateBudget()" class="mt-4 bg-blue-600 text-white px-4 py-2 rounded">Calculate</button>
+      </div>
+
+      <div>
+        <h2 class="font-semibold mb-2">Summary</h2>
+        <p><strong>Total Expenses:</strong> $<span id="totalExpenses">0</span></p>
+        <p><strong>Balance:</strong> $<span id="balance">0</span></p>
+        <p><strong>Savings %:</strong> <span id="savingsPercent">0</span>%</p>
+        <canvas id="budgetChart" class="mt-4"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function calculateBudget() {
+      const income = parseFloat(document.getElementById("incomeInput").value) || 0;
+      const expensesRaw = document.getElementById("expensesInput").value;
+      const lines = expensesRaw.split("\n");
+      let totalExpenses = 0;
+      const labels = [];
+      const data = [];
+
+      lines.forEach(line => {
+        const [label, value] = line.split(":");
+        if (label && value) {
+          labels.push(label.trim());
+          data.push(parseFloat(value.trim()));
+          totalExpenses += parseFloat(value.trim());
+        }
+      });
+
+      const balance = income - totalExpenses;
+      const savingsPercent = income > 0 ? ((balance / income) * 100).toFixed(1) : 0;
+
+      document.getElementById("totalExpenses").textContent = totalExpenses.toFixed(2);
+      document.getElementById("balance").textContent = balance.toFixed(2);
+      document.getElementById("savingsPercent").textContent = savingsPercent;
+
+      const ctx = document.getElementById("budgetChart").getContext("2d");
+      if (window.budgetChart) window.budgetChart.destroy();
+      window.budgetChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Expenses Breakdown',
+            data: data,
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { position: 'bottom' },
+            title: { display: true, text: 'Expenses Breakdown' }
+          }
+        }
+      });
+    }
+  </script>
+</body>
+</html><!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Personal Budget Tracker</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-900 p-4">
+  <div class="max-w-2xl mx-auto bg-white rounded-2xl shadow-lg p-6">
+    <h1 class="text-2xl font-bold mb-4 text-center">Personal Budget Tracker</h1>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <h2 class="font-semibold mb-2">Income</h2>
+        <input id="incomeInput" type="number" placeholder="Total income" class="w-full p-2 border rounded mb-4" />
+
+        <h2 class="font-semibold mb-2">Expenses</h2>
+        <textarea id="expensesInput" placeholder="Rent:1000\nGroceries:300\nUtilities:150" class="w-full p-2 border rounded h-32"></textarea>
+
+        <button onclick="calculateBudget()" class="mt-4 bg-blue-600 text-white px-4 py-2 rounded">Calculate</button>
+      </div>
+
+      <div>
+        <h2 class="font-semibold mb-2">Summary</h2>
+        <p><strong>Total Expenses:</strong> $<span id="totalExpenses">0</span></p>
+        <p><strong>Balance:</strong> $<span id="balance">0</span></p>
+        <p><strong>Savings %:</strong> <span id="savingsPercent">0</span>%</p>
+        <canvas id="budgetChart" class="mt-4"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function calculateBudget() {
+      const income = parseFloat(document.getElementById("incomeInput").value) || 0;
+      const expensesRaw = document.getElementById("expensesInput").value;
+      const lines = expensesRaw.split("\n");
+      let totalExpenses = 0;
+      const labels = [];
+      const data = [];
+
+      lines.forEach(line => {
+        const [label, value] = line.split(":");
+        if (label && value) {
+          labels.push(label.trim());
+          data.push(parseFloat(value.trim()));
+          totalExpenses += parseFloat(value.trim());
+        }
+      });
+
+      const balance = income - totalExpenses;
+      const savingsPercent = income > 0 ? ((balance / income) * 100).toFixed(1) : 0;
+
+      document.getElementById("totalExpenses").textContent = totalExpenses.toFixed(2);
+      document.getElementById("balance").textContent = balance.toFixed(2);
+      document.getElementById("savingsPercent").textContent = savingsPercent;
+
+      const ctx = document.getElementById("budgetChart").getContext("2d");
+      if (window.budgetChart) window.budgetChart.destroy();
+      window.budgetChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Expenses Breakdown',
+            data: data,
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { position: 'bottom' },
+            title: { display: true, text: 'Expenses Breakdown' }
+          }
+        }
+      });
+    }
+  </script>
+</body>
+</html>
