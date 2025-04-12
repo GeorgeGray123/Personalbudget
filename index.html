@@ -28,6 +28,9 @@
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
       <div>
+        <h2 class="text-xl font-semibold mb-2">🏦 Source Account</h2>
+        <input id="sourceAccountInput" type="text" placeholder="e.g. Main Bank Account" class="w-full p-3 border border-gray-300 rounded-lg mb-6" />
+
         <h2 class="text-xl font-semibold mb-2">📅 Monthly Forecast</h2>
         <textarea id="forecastInput" placeholder="Month:Rent:1000:Groceries:300:Utilities:150:Savings:500" class="w-full p-3 border border-gray-300 rounded-lg h-24 mb-4"></textarea>
         <p class="text-sm text-gray-500 mt-1 mb-6">Format: Month:Category:Amount... (e.g., May:Rent:1000:Groceries:300...)</p>
@@ -36,11 +39,14 @@
         <input id="incomeInput" type="number" placeholder="Total income (€)" class="w-full p-3 border border-gray-300 rounded-lg mb-6" />
 
         <h2 class="text-xl font-semibold mb-2">📉 Expenses</h2>
-        <textarea id="expensesInput" placeholder="Rent:1000:Bank A:Card\nGroceries:300:Credit Card:Card\nUtilities:150:Bank B:Transfer" class="w-full p-3 border border-gray-300 rounded-lg h-32"></textarea>
-        <p class="text-sm text-gray-500 mt-1">Format: Category:Amount:Debited From:Payment Method</p>
+        <textarea id="expensesInput" placeholder="Rent:1000:Card
+Groceries:300:Card
+Utilities:150:Transfer" class="w-full p-3 border border-gray-300 rounded-lg h-32"></textarea>
+        <p class="text-sm text-gray-500 mt-1">Format: Category:Amount:Payment Method</p>
 
         <h2 class="text-xl font-semibold mt-6 mb-2">💾 Current Savings</h2>
-        <textarea id="savingsInput" placeholder="Emergency Fund:2000:Cash\nInvestments:5000:Invested" class="w-full p-3 border border-gray-300 rounded-lg h-24"></textarea>
+        <textarea id="savingsInput" placeholder="Emergency Fund:2000:Cash
+Investments:5000:Invested" class="w-full p-3 border border-gray-300 rounded-lg h-24"></textarea>
         <p class="text-sm text-gray-500 mt-1">Format: Label:Amount:Status</p>
 
         <button onclick="calculateBudget()" class="mt-6 bg-blue-600 text-white px-6 py-3 rounded-xl shadow hover:bg-blue-700 transition">Calculate</button>
@@ -73,12 +79,23 @@
   </div>
 
   <script type="text/javascript">
+    let globalSankeyData = null;
+
+    function drawSankeyChart() {
+      if (!globalSankeyData) return;
+      const data = google.visualization.arrayToDataTable(globalSankeyData);
+      const chart = new google.visualization.Sankey(document.getElementById('sankeyChart'));
+      chart.draw(data, {});
+    }
+
     google.charts.load('current', {'packages':['sankey']});
+    google.charts.setOnLoadCallback(drawSankeyChart);
   </script>
 
   <script>
     function calculateBudget() {
       const income = parseFloat(document.getElementById("incomeInput").value) || 0;
+      const sourceAccount = document.getElementById("sourceAccountInput").value.trim() || "Income";
       const expensesRaw = document.getElementById("expensesInput").value;
       const expenseLines = expensesRaw.split("\n");
       let totalExpenses = 0;
@@ -88,16 +105,15 @@
       const paymentMethodTotals = {};
 
       expenseLines.forEach(line => {
-        const [label, value, account, paymentMethod] = line.split(":");
+        const [label, value, paymentMethod] = line.split(":");
         if (label && value) {
           const trimmedLabel = label.trim();
-          const accountDisplay = account ? account.trim() : 'N/A';
           const methodDisplay = paymentMethod ? paymentMethod.trim() : 'N/A';
-          labels.push(`${trimmedLabel} (${accountDisplay}, ${methodDisplay})`);
+          labels.push(`${trimmedLabel} (${methodDisplay})`);
           const amount = parseFloat(value.trim());
           data.push(amount);
           totalExpenses += amount;
-          sankeyData.push(["Income", trimmedLabel, amount]);
+          sankeyData.push([sourceAccount, trimmedLabel, amount]);
 
           if (!paymentMethodTotals[methodDisplay]) {
             paymentMethodTotals[methodDisplay] = 0;
@@ -126,7 +142,7 @@
           const item = document.createElement("li");
           item.textContent = `${label.trim()}: €${amount.toFixed(2)} (${status ? status.trim() : 'Unknown'})`;
           savingsList.appendChild(item);
-          sankeyData.push(["Income", label.trim(), amount]);
+          sankeyData.push([sourceAccount, label.trim(), amount]);
         }
       });
 
@@ -157,11 +173,8 @@
         }
       });
 
-      google.charts.setOnLoadCallback(() => {
-        const data = google.visualization.arrayToDataTable(sankeyData);
-        const chart = new google.visualization.Sankey(document.getElementById('sankeyChart'));
-        chart.draw(data, {});
-      });
+      globalSankeyData = sankeyData;
+      drawSankeyChart();
     }
 
     document.getElementById("forecastInput").addEventListener("input", () => {
