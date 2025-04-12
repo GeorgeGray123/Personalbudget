@@ -6,128 +6,85 @@
   <title>Personal Budget Tracker</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 </head>
 <body class="bg-gray-100 text-gray-900 p-4">
-  <div class="max-w-2xl mx-auto bg-white rounded-2xl shadow-lg p-6">
+  <div class="max-w-6xl mx-auto bg-white rounded-2xl shadow-lg p-6">
     <h1 class="text-2xl font-bold mb-4 text-center">Personal Budget Tracker</h1>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div>
         <h2 class="font-semibold mb-2">Income</h2>
-        <input id="incomeInput" type="number" placeholder="Total income" class="w-full p-2 border rounded mb-4" />
+        <input id="incomeInput" type="number" placeholder="Total income (€)" class="w-full p-2 border rounded mb-4" />
 
         <h2 class="font-semibold mb-2">Expenses</h2>
-        <textarea id="expensesInput" placeholder="Rent:1000\nGroceries:300\nUtilities:150" class="w-full p-2 border rounded h-32"></textarea>
+        <textarea id="expensesInput" placeholder="Rent:1000:Bank A\nGroceries:300:Credit Card\nUtilities:150:Bank B" class="w-full p-2 border rounded h-32"></textarea>
+        <p class="text-sm text-gray-500">Format: Category:Amount:Debited From</p>
+
+        <h2 class="font-semibold mt-4 mb-2">Current Savings</h2>
+        <textarea id="savingsInput" placeholder="Emergency Fund:2000:Cash\nInvestments:5000:Invested" class="w-full p-2 border rounded h-24"></textarea>
+        <p class="text-sm text-gray-500">Format: Label:Amount:Status</p>
 
         <button onclick="calculateBudget()" class="mt-4 bg-blue-600 text-white px-4 py-2 rounded">Calculate</button>
       </div>
 
       <div>
         <h2 class="font-semibold mb-2">Summary</h2>
-        <p><strong>Total Expenses:</strong> $<span id="totalExpenses">0</span></p>
-        <p><strong>Balance:</strong> $<span id="balance">0</span></p>
+        <p><strong>Total Expenses:</strong> €<span id="totalExpenses">0</span></p>
+        <p><strong>Balance:</strong> €<span id="balance">0</span></p>
         <p><strong>Savings %:</strong> <span id="savingsPercent">0</span>%</p>
+
+        <h2 class="font-semibold mt-4 mb-2">Savings Overview</h2>
+        <ul id="savingsList" class="list-disc list-inside text-sm"></ul>
+
         <canvas id="budgetChart" class="mt-4"></canvas>
+        <div id="sankeyChart" class="mt-6" style="width: 100%; height: 300px;"></div>
       </div>
     </div>
   </div>
 
-  <script>
-    function calculateBudget() {
-      const income = parseFloat(document.getElementById("incomeInput").value) || 0;
-      const expensesRaw = document.getElementById("expensesInput").value;
-      const lines = expensesRaw.split("\n");
-      let totalExpenses = 0;
-      const labels = [];
-      const data = [];
-
-      lines.forEach(line => {
-        const [label, value] = line.split(":");
-        if (label && value) {
-          labels.push(label.trim());
-          data.push(parseFloat(value.trim()));
-          totalExpenses += parseFloat(value.trim());
-        }
-      });
-
-      const balance = income - totalExpenses;
-      const savingsPercent = income > 0 ? ((balance / income) * 100).toFixed(1) : 0;
-
-      document.getElementById("totalExpenses").textContent = totalExpenses.toFixed(2);
-      document.getElementById("balance").textContent = balance.toFixed(2);
-      document.getElementById("savingsPercent").textContent = savingsPercent;
-
-      const ctx = document.getElementById("budgetChart").getContext("2d");
-      if (window.budgetChart) window.budgetChart.destroy();
-      window.budgetChart = new Chart(ctx, {
-        type: 'pie',
-        data: {
-          labels: labels,
-          datasets: [{
-            label: 'Expenses Breakdown',
-            data: data,
-          }]
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: { position: 'bottom' },
-            title: { display: true, text: 'Expenses Breakdown' }
-          }
-        }
-      });
-    }
+  <script type="text/javascript">
+    google.charts.load('current', {'packages':['sankey']});
   </script>
-</body>
-</html><!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Personal Budget Tracker</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-100 text-gray-900 p-4">
-  <div class="max-w-2xl mx-auto bg-white rounded-2xl shadow-lg p-6">
-    <h1 class="text-2xl font-bold mb-4 text-center">Personal Budget Tracker</h1>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div>
-        <h2 class="font-semibold mb-2">Income</h2>
-        <input id="incomeInput" type="number" placeholder="Total income" class="w-full p-2 border rounded mb-4" />
-
-        <h2 class="font-semibold mb-2">Expenses</h2>
-        <textarea id="expensesInput" placeholder="Rent:1000\nGroceries:300\nUtilities:150" class="w-full p-2 border rounded h-32"></textarea>
-
-        <button onclick="calculateBudget()" class="mt-4 bg-blue-600 text-white px-4 py-2 rounded">Calculate</button>
-      </div>
-
-      <div>
-        <h2 class="font-semibold mb-2">Summary</h2>
-        <p><strong>Total Expenses:</strong> $<span id="totalExpenses">0</span></p>
-        <p><strong>Balance:</strong> $<span id="balance">0</span></p>
-        <p><strong>Savings %:</strong> <span id="savingsPercent">0</span>%</p>
-        <canvas id="budgetChart" class="mt-4"></canvas>
-      </div>
-    </div>
-  </div>
 
   <script>
     function calculateBudget() {
       const income = parseFloat(document.getElementById("incomeInput").value) || 0;
+
+      // Expenses Processing
       const expensesRaw = document.getElementById("expensesInput").value;
-      const lines = expensesRaw.split("\n");
+      const expenseLines = expensesRaw.split("\n");
       let totalExpenses = 0;
       const labels = [];
       const data = [];
+      const sankeyData = [["From", "To", "Amount"]];
 
-      lines.forEach(line => {
-        const [label, value] = line.split(":");
+      expenseLines.forEach(line => {
+        const [label, value, account] = line.split(":");
         if (label && value) {
-          labels.push(label.trim());
-          data.push(parseFloat(value.trim()));
-          totalExpenses += parseFloat(value.trim());
+          const trimmedLabel = label.trim();
+          labels.push(`${trimmedLabel} (${account ? account.trim() : 'N/A'})`);
+          const amount = parseFloat(value.trim());
+          data.push(amount);
+          totalExpenses += amount;
+          sankeyData.push(["Income", trimmedLabel, amount]);
+        }
+      });
+
+      // Savings Processing
+      const savingsRaw = document.getElementById("savingsInput").value;
+      const savingsLines = savingsRaw.split("\n");
+      const savingsList = document.getElementById("savingsList");
+      savingsList.innerHTML = "";
+
+      savingsLines.forEach(line => {
+        const [label, value, status] = line.split(":");
+        if (label && value) {
+          const amount = parseFloat(value.trim());
+          const item = document.createElement("li");
+          item.textContent = `${label.trim()}: €${amount.toFixed(2)} (${status ? status.trim() : 'Unknown'})`;
+          savingsList.appendChild(item);
+          sankeyData.push(["Income", label.trim(), amount]);
         }
       });
 
@@ -138,6 +95,7 @@
       document.getElementById("balance").textContent = balance.toFixed(2);
       document.getElementById("savingsPercent").textContent = savingsPercent;
 
+      // Chart.js Pie Chart
       const ctx = document.getElementById("budgetChart").getContext("2d");
       if (window.budgetChart) window.budgetChart.destroy();
       window.budgetChart = new Chart(ctx, {
@@ -156,6 +114,13 @@
             title: { display: true, text: 'Expenses Breakdown' }
           }
         }
+      });
+
+      // Google Charts Sankey
+      google.charts.setOnLoadCallback(() => {
+        const data = google.visualization.arrayToDataTable(sankeyData);
+        const chart = new google.visualization.Sankey(document.getElementById('sankeyChart'));
+        chart.draw(data, {});
       });
     }
   </script>
